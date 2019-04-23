@@ -1,6 +1,7 @@
 
 
 import {writeAsync} from './write';
+import {heap} from 'pprof';
 
 export interface Allocation {
   size: number;
@@ -16,24 +17,28 @@ export interface AllocationProfileNode {
   children: AllocationProfileNode[];
 }
 
-const profiler = require('bindings')('sampling_heap_profiler');
 let profiling = false;
 
+export interface StartOptions {
+  sampleIntervalBytes?: number,
+  stackDepth?: number
+};
+
 export function start(cfg?: {sampleIntervalBytes: number, stackDepth: number}) {
+  const DEFAULT_CONFIG = {
+    sampleIntervalBytes: 512 * 1024,
+    stackDepth: 64,
+  };
+  cfg = {...DEFAULT_CONFIG, ...cfg};
   if (!profiling) {
-    if (cfg) {
-      profiler.startSamplingHeapProfiler(
-          cfg.sampleIntervalBytes, cfg.stackDepth);
-    } else {
-      profiler.startSamplingHeapProfiler();
-    }
+    heap.start(cfg.sampleIntervalBytes, cfg.stackDepth);
     profiling = true;
   }
 }
 
 export function stop() {
   if (profiling) {
-    profiler.stopSamplingHeapProfiler();
+    heap.stop();
     profiling = false;
   }
 }
@@ -45,7 +50,7 @@ export function get(translate?: boolean): AllocationProfileNode|
   if (!profiling) {
     throw new Error('get can only be called after profiler has been started');
   }
-  const profile = profiler.getAllocationProfile();
+  const profile = heap.profile();
   return translate ? translateToDevtools(profile) : profile;
 }
 
@@ -64,7 +69,8 @@ export function write(
     filename = undefined;
   }
 
-  const promise = profiling ? writeAsync(translateToDevtools(get()), filename) :
+  const profile = get(true);
+  const promise = profiling ? writeAsync(profile, filename) :
                               Promise.reject(new Error('profiler not running'));
   if (cb) {
     promise.then(cb.bind(null, null)).catch(cb);

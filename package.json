@@ -6,7 +6,6 @@
   "main": "out/src/index.js",
   "types": "out/src/index.d.ts",
   "scripts": {
-    "install": "node-gyp rebuild",
     "test": "nyc ava out/test/test*.js",
     "check": "gts check",
     "clean": "gts clean",
@@ -24,7 +23,8 @@
   "dependencies": {
     "bindings": "^1.5.0",
     "nan": "^2.13.2",
-    "pify": "^3.0.0"
+    "pify": "^3.0.0",
+    "pprof": "^0.2.0"
   },
   "devDependencies": {
     "@types/delay": "^2.0.1",
