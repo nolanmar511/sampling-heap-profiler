@@ -1,7 +1,8 @@
 
 
-import {writeAsync} from './write';
 import {heap} from 'pprof';
+
+import {writeAsync} from './write';
 
 export interface Allocation {
   size: number;
@@ -20,9 +21,9 @@ export interface AllocationProfileNode {
 let profiling = false;
 
 export interface StartOptions {
-  sampleIntervalBytes?: number,
-  stackDepth?: number
-};
+  sampleIntervalBytes?: number;
+  stackDepth?: number;
+}
 
 export function start(cfg?: {sampleIntervalBytes: number, stackDepth: number}) {
   const DEFAULT_CONFIG = {
